@@ -3,6 +3,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 import requests
+import re
+from urllib.parse import quote
 
 # Set up Selenium webdriver with Chrome
 chrome_options = Options()
@@ -14,9 +16,10 @@ telegram_bot_token = '5895967085:AAFJY2ln43kPMf4EqYV-XM6j8tXoVMuu1yE'
 telegram_chat_id = '6173488270'
 
 # send telegram message
-def send(title,number,page):
-    link = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view%%26pbancSn=%d%%26page=%i%%26schStr=regist%%26pbancEndYn=N" % (number, page)
-    txt=title+'\n'+link
+def send(title,a_tag_number,page):
+    link = "https://www.kofac.re.kr/bns/view/menu/274?thisPage=4&uniAncmId=ANCM001588&searchField=titlecontent&searchText="
+    escaped_link = quote(link, safe='')
+    txt=title+"\n"+escaped_link
     telegram_api_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage?chat_id={telegram_chat_id}&text={txt}'
     response = requests.get(telegram_api_url)
 
@@ -27,42 +30,46 @@ def pagination(i):
     driver.execute_script("arguments[0].click();", button)
     print("page %d"%i)
 
+# get link
+def get_link(str):
+    match = re.search(r"'(.+)'", str)
+    if match:
+        link = match.group(1)
+        return link
+
 
 
 def main():
-    url = 'https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do'
+    url = 'https://www.kofac.re.kr/bns/list/menu/274'
     driver.get(url)
     time.sleep(5)
 
     # read file
     try:
-        with open('k-startup.txt', 'r', encoding='utf-8') as f:
-            old_kstartup = set(f.read().splitlines())
+        with open('kofac.txt', 'r', encoding='utf-8') as f:
+            old_kofac = set(f.read().splitlines())
     except FileNotFoundError:
-        old_kstartup = set()
+        old_kofac = set()
 
     # open file
-    with open('k-startup.txt', 'a', encoding='utf-8') as f:
-        
-        for i in range(2,5):
-            lis = driver.find_elements(By.CSS_SELECTOR, 'li.notice')
-
-            for li in lis:
+    with open('kofac.txt', 'w', encoding='utf-8') as f:
+        for i in range(2,4):
+            trs = driver.find_elements(By.CSS_SELECTOR, 'tr')
+            
+            for tr in trs:
                 # get title
-                notice_tit = li.find_element(By.CSS_SELECTOR, 'p.tit')
-                title = notice_tit.get_attribute('innerHTML')
+                tit = tr.find_element(By.CSS_SELECTOR,'a')
+                title = tit.get_attribute('innerHTML').strip()
 
-                if title not in old_kstartup:
+                if title not in old_kofac:
                     # get link
-                    notice_a_tag = li.find_element(By.CSS_SELECTOR, 'a').get_attribute("href")
-                    notice_number = int(notice_a_tag.split("(")[1].split(")")[0])
+                    a_tag = tr.find_element(By.CSS_SELECTOR, 'a').get_attribute("onclick")
+                    a_tag_number=get_link(a_tag)
                     # write file & send telegram message
                     f.write(title + '\n') 
-                    send(title,notice_number,i-1)
+                    send(title,a_tag_number,i-1)
 
             pagination(i)
-            time.sleep(5)
-
         print("done")
 
 if __name__ == "__main__":
