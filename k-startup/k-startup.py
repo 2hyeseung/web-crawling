@@ -18,6 +18,8 @@ def send(txt):
     telegram_api_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage?chat_id={telegram_chat_id}&text={txt}'
     response = requests.get(telegram_api_url)
 
+
+
 def main():
     url = 'https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do'
     driver.get(url)
@@ -25,34 +27,33 @@ def main():
 
     # read file
     try:
-        with open('k-startup.txt', 'r') as f:
+        with open('k-startup.txt', 'r', encoding='utf-8') as f:
             old_kstartup = set(f.read().splitlines())
     except FileNotFoundError:
         old_kstartup = set()
 
-    # Find the li tag with class "notice"
-    with open('k-startup.txt', 'a') as f:
-        while True:
+    # open file
+    with open('k-startup.txt', 'a', encoding='utf-8') as f:
+        for i in range(6,8):
+            lis = driver.find_elements(By.CSS_SELECTOR, 'li.notice')
+            for li in lis:
+                notice_tit = li.find_element(By.CSS_SELECTOR, 'p.tit')
+                txt = notice_tit.get_attribute('innerHTML')
+                if txt not in old_kstartup:
+                    notice_a_tag = li.find_element(By.CSS_SELECTOR, 'a').get_attribute("href")
+                    notice_number = int(notice_a_tag.split("(")[1].split(")")[0])
+                    link = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view%%26pbancSn=%d%%26page=%i%%26schStr=regist%%26pbancEndYn=N" % (notice_number, i-1)
+                    f.write(txt + '\n') 
+                    send(txt+'\n'+link)
 
-            for i in range(1,5):
-                # 페이지 이동해야하는데 잘 안됨 ..
-                lis = driver.find_elements(By.CSS_SELECTOR, 'li.notice')
-                for li in lis:
-                    notice_tit = li.find_element(By.CSS_SELECTOR, 'p.tit')
-                    txt = notice_tit.get_attribute('innerHTML')
-                    if txt not in old_kstartup:
-                        f.write(txt + '\n') 
-                        send(txt)
-                        old_kstartup.add(txt)
+            # pagination
+            button_xpath="//a[@title='%d 페이지로 이동']"%i
+            button = driver.find_element(By.XPATH, button_xpath)
+            driver.execute_script("arguments[0].click();", button)
+            print("page %d"%i)
+            time.sleep(5)
 
-                # check if there's a "next page" button and click it
-                # try:
-                #     next_page_button = driver.find_element(By.CSS_SELECTOR, 'a.btn.nextAll.page_btn.last')
-                #     driver.execute_script("arguments[0].click();", next_page_button)
-                # except:
-                #     break 
-
-                time.sleep(5)
+        print("done")
 
 if __name__ == "__main__":
     main()
