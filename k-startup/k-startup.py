@@ -14,16 +14,24 @@ telegram_bot_token = '5895967085:AAFJY2ln43kPMf4EqYV-XM6j8tXoVMuu1yE'
 telegram_chat_id = '6173488270'
 
 # send telegram message
-def send(txt):
+def send(title,number,page):
+    link = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view%%26pbancSn=%d%%26page=%i%%26schStr=regist%%26pbancEndYn=N" % (number, page)
+    txt=title+'\n'+link
     telegram_api_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage?chat_id={telegram_chat_id}&text={txt}'
     response = requests.get(telegram_api_url)
 
-
+# pagination
+def pagination(i):
+    button_xpath="//a[@title='%d 페이지로 이동']"%i
+    button = driver.find_element(By.XPATH, button_xpath)
+    driver.execute_script("arguments[0].click();", button)
+    print("page %d"%i)
 
 def main():
     url = 'https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do'
     driver.get(url)
     time.sleep(5)
+
 
     # read file
     try:
@@ -32,25 +40,27 @@ def main():
     except FileNotFoundError:
         old_kstartup = set()
 
+
     # open file
     with open('k-startup.txt', 'a', encoding='utf-8') as f:
-        for i in range(6,8):
+        
+        for i in range(2,5):
             lis = driver.find_elements(By.CSS_SELECTOR, 'li.notice')
+
             for li in lis:
+                # get title
                 notice_tit = li.find_element(By.CSS_SELECTOR, 'p.tit')
-                txt = notice_tit.get_attribute('innerHTML')
-                if txt not in old_kstartup:
+                title = notice_tit.get_attribute('innerHTML')
+
+                if title not in old_kstartup:
+                    # get link
                     notice_a_tag = li.find_element(By.CSS_SELECTOR, 'a').get_attribute("href")
                     notice_number = int(notice_a_tag.split("(")[1].split(")")[0])
-                    link = "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view%%26pbancSn=%d%%26page=%i%%26schStr=regist%%26pbancEndYn=N" % (notice_number, i-1)
-                    f.write(txt + '\n') 
-                    send(txt+'\n'+link)
+                    # write file & send telegram message
+                    f.write(title + '\n') 
+                    send(title,notice_number,i-1)
 
-            # pagination
-            button_xpath="//a[@title='%d 페이지로 이동']"%i
-            button = driver.find_element(By.XPATH, button_xpath)
-            driver.execute_script("arguments[0].click();", button)
-            print("page %d"%i)
+            pagination(i)
             time.sleep(5)
 
         print("done")
