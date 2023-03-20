@@ -17,7 +17,11 @@ telegram_chat_id = '6173488270'
 
 # send telegram message
 def send(title,a_tag_number,page):
-    link = "https://www.kofac.re.kr/bns/view/menu/274?thisPage=%d&uniAncmId=%s&searchField=titlecontent&searchText=" %(page,a_tag_number)
+    if(page==1):
+        page=""
+    else:
+        page=str(page)
+    link = "https://www.msit.go.kr/bbs/view.do?sCode=user&mId=129&mPid=224&pageIndex=%s&bbsSeqNo=100&nttSeqNo=%s&searchOpt=ALL&searchTxt=" %(page,a_tag_number)
     escaped_link = quote(link, safe='')
     txt=title+"\n"+escaped_link
     telegram_api_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage?chat_id={telegram_chat_id}&text={txt}'
@@ -32,44 +36,42 @@ def pagination(i):
 
 # get link
 def get_link(str):
-    match = re.search(r"'(.+)'", str)
-    if match:
-        link = match.group(1)
-        return link
+    link = re.search(r"\d+", str).group()
+    return link
 
 
 
 def main():
-    url = 'https://www.kofac.re.kr/bns/list/menu/274'
+    url = 'https://www.msit.go.kr/bbs/list.do?sCode=user&mPid=224&mId=129'
     driver.get(url)
     time.sleep(5)
 
     # read file
     try:
-        with open('kofac.txt', 'r', encoding='utf-8') as f:
-            old_kofac = set(f.read().splitlines())
+        with open('msit.txt', 'r', encoding='utf-8') as f:
+            old_msit = set(f.read().splitlines())
     except FileNotFoundError:
-        old_kofac = set()
+        old_msit = set()
 
     # open file
-    with open('kofac.txt', 'w', encoding='utf-8') as f:
-        for i in range(2,5):
-            trs = driver.find_elements(By.CSS_SELECTOR, 'tr')
+    with open('msit.txt', 'w', encoding='utf-8') as f:
+        for i in range(2,4):
+            divs = driver.find_elements(By.CSS_SELECTOR, 'div.toggle')
             
-            for tr in trs:
+            for div in divs:
                 # get title
-                tit = tr.find_element(By.CSS_SELECTOR,'a')
+                tit = div.find_element(By.CSS_SELECTOR,'p.title')
                 title = tit.get_attribute('innerHTML').strip()
 
-                if title not in old_kofac:
+                if title not in old_msit:
                     # get link
-                    a_tag = tr.find_element(By.CSS_SELECTOR, 'a').get_attribute("onclick")
+                    a_tag = div.find_element(By.CSS_SELECTOR, 'a').get_attribute("onclick")
                     a_tag_number=get_link(a_tag)
                     # write file & send telegram message
                     f.write(title + '\n') 
                     send(title,a_tag_number,i-1)
 
-            pagination(i)
+            # pagination(i)
         print("done")
 
 if __name__ == "__main__":
