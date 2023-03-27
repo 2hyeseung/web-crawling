@@ -17,7 +17,7 @@ telegram_chat_id = '6173488270'
 
 # send telegram message
 def send(title,a_tag_number,page):
-    link = "https://www.kofac.re.kr/bns/view/menu/274?thisPage=%d&uniAncmId=%s&searchField=titlecontent&searchText=" %(page,a_tag_number)
+    link = "https://www.kofac.re.kr/bns/view/menu/274?thisPage=%s&uniAncmId=%s&searchField=titlecontent&searchText=" %(page,a_tag_number)
     escaped_link = quote(link, safe='')
     txt=title+"\n"+escaped_link
     telegram_api_url = f'https://api.telegram.org/bot{telegram_bot_token}/sendMessage?chat_id={telegram_chat_id}&text={txt}'
