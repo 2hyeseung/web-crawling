@@ -7,11 +7,16 @@ import requests
 # Set up Selenium webdriver with Chrome
 chrome_options = Options()
 chrome_options.add_argument("--headless")
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument("--single-process")
+chrome_options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(options=chrome_options)
 
 # telegram info
-telegram_bot_token = '5895967085:AAFJY2ln43kPMf4EqYV-XM6j8tXoVMuu1yE'
-telegram_chat_id = '6173488270'
+f = open('/home/ubuntu/crawling/token.txt', mode='rt', encoding='utf-8')
+telegram_bot_token = f.read().splitlines()[0]
+# telegram_bot_token = '5895967085:AAFJY2ln43kPMf4EqYV-XM6j8tXoVMuu1yE'
+telegram_chat_id = '-1001835326415'
 
 # send telegram message
 def send(title,number,page):
