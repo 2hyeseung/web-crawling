@@ -5,11 +5,15 @@ import time
 import requests
 import re
 from urllib.parse import quote
+import os
 
 # Set up Selenium webdriver with Chrome
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(BASE_DIR, 'kofac.txt')
 
 # telegram info
 f = open('/home/ubuntu/crawling/token.txt', mode='rt', encoding='utf-8')
@@ -48,13 +52,13 @@ def main():
 
     # read file
     try:
-        with open('kofac.txt', 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             old_kofac = set(f.read().splitlines())
     except FileNotFoundError:
         old_kofac = set()
 
     # open file
-    with open('kofac.txt', 'w', encoding='utf-8') as f:
+    with open(file_path, 'a', encoding='utf-8') as f:
         for i in range(2,5):
             trs = driver.find_elements(By.CSS_SELECTOR, 'tr')
             

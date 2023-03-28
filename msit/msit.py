@@ -5,11 +5,15 @@ import time
 import requests
 import re
 from urllib.parse import quote
+import os
 
 # Set up Selenium webdriver with Chrome
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(BASE_DIR, 'msit.txt')
 
 # telegram info
 f = open('/home/ubuntu/crawling/token.txt', mode='rt', encoding='utf-8')
@@ -50,13 +54,13 @@ def main():
 
     # read file
     try:
-        with open('msit.txt', 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             old_msit = set(f.read().splitlines())
     except FileNotFoundError:
         old_msit = set()
 
     # open file
-    with open('msit.txt', 'w', encoding='utf-8') as f:
+    with open(file_path, 'a', encoding='utf-8') as f:
         for i in range(2,4):
             divs = driver.find_elements(By.CSS_SELECTOR, 'div.toggle')
             

@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 import requests
+import os
 
 # Set up Selenium webdriver with Chrome
 chrome_options = Options()
@@ -11,6 +12,9 @@ chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--single-process")
 chrome_options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(options=chrome_options)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(BASE_DIR, 'k-startup.txt')
 
 # telegram info
 f = open('/home/ubuntu/crawling/token.txt', mode='rt', encoding='utf-8')
@@ -41,13 +45,13 @@ def main():
 
     # read file
     try:
-        with open('k-startup.txt', 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             old_kstartup = set(f.read().splitlines())
     except FileNotFoundError:
         old_kstartup = set()
 
     # open file
-    with open('k-startup.txt', 'a', encoding='utf-8') as f:
+    with open(file_path, 'a', encoding='utf-8') as f:
         
         for i in range(2,5):
             lis = driver.find_elements(By.CSS_SELECTOR, 'li.notice')
