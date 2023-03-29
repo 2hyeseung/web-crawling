@@ -35,7 +35,7 @@ def send(title,a_tag_number,page):
 
 # pagination
 def pagination(i):
-    button_xpath="//a[@title='%d 페이지로 이동']"%i
+    button_xpath="//a[@title='%d페이지로 이동']"%i
     button = driver.find_element(By.XPATH, button_xpath)
     driver.execute_script("arguments[0].click();", button)
     print("page %d"%i)
@@ -77,7 +77,7 @@ def main():
                     f.write(title + '\n') 
                     send(title,a_tag_number,i-1)
 
-            # pagination(i)
+            pagination(i)
         print("done")
 
 if __name__ == "__main__":
